@@ -1,4 +1,4 @@
-# MSL v1 implementation contract
+# Debian subsystem implementation tracker
 
 status: implemented
 progress: 100% (documentation contract and workflow)

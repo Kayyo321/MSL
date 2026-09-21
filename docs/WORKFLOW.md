@@ -3,7 +3,7 @@
 This document is the precise user-facing behavior of MSL. It describes what a
 developer sees, what state changes, and what MSL does when that operation cannot
 safely continue. The corresponding implementation contract is
-[Implementations/v1.md](Implementations/v1.md), which tracks implementation
+[Implementations/debian-subsystem-implementation-tracker.md](Implementations/debian-subsystem-implementation-tracker.md), which tracks implementation
 state for the complete v1 design. V1 supports Debian 12 arm64 only.
 
 ## Conventions
