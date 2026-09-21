@@ -2,8 +2,9 @@
 
 This document is the precise user-facing behavior of MSL. It describes what a
 developer sees, what state changes, and what MSL does when that operation cannot
-safely continue. The corresponding internal contract is
-[IMPLEMENTATION.md](IMPLEMENTATION.md).
+safely continue. The corresponding implementation contract is
+[Implementations/v1.md](Implementations/v1.md), which tracks implementation
+state for the complete v1 design. V1 supports Debian 12 arm64 only.
 
 ## Conventions
 
@@ -24,8 +25,8 @@ object, sends no prompts/progress to standard output, and cannot infer a choice.
 
 The normal first-use sequence is:
 
-    msl install ubuntu --release 24.04 --name ubuntu-dev --user dev
-    msl --instance ubuntu-dev
+    msl install debian --release 12 --name debian-dev --user dev
+    msl shell debian-dev
 
 install first validates macOS support, host architecture, free storage, and the
 signed catalog. It displays the exact release, image digest prefix, initial disk
@@ -44,10 +45,11 @@ exits 7 and leaves the instance repair_required with disk and console log
 preserved. A retry using that name refuses to overwrite it. The user must inspect
 or repair the instance, or explicitly remove it.
 
-msl and msl shell choose an explicit --instance first. Otherwise they use the
-instance selected by the nearest ancestor msl.toml. If there is no manifest, they
-use the only installed instance. With two or more candidates they exit with
-instance_selection_required and list names; they never use a last-used instance.
+`msl shell` chooses an explicit instance name first. Otherwise it uses the
+instance selected by the nearest ancestor `msl.toml`. If there is no manifest,
+it uses the only installed instance. With two or more candidates it exits with
+`instance_selection_required` and lists names; it never uses a last-used
+instance.
 
 A shell starts a stopped VM, waits for guest-agent readiness, and attaches a
 login shell for the designated Linux user. Exiting the shell does not erase guest
@@ -58,9 +60,9 @@ The current Mac directory is not implicitly mounted or copied.
 ## 2. Instance lifecycle and resources
 
     msl instance list
-    msl instance inspect ubuntu-dev
-    msl instance start ubuntu-dev
-    msl instance stop ubuntu-dev
+    msl instance inspect debian-dev
+    msl instance start debian-dev
+    msl instance stop debian-dev
 
 list displays name, distribution/release, Linux user, state, configured resource
 limits, and active project services. inspect also displays UUID, image digest
@@ -73,16 +75,16 @@ service shutdown and guest shutdown, waiting up to 60 seconds. If the guest does
 not stop, MSL powers it off and explicitly records clean=false; its next start
 runs a guest filesystem check before offering a shell.
 
-    msl instance resize ubuntu-dev --disk 60
+    msl instance resize debian-dev --disk 60
 
 This works only while stopped. It prints the old and new disk ceilings and asks
 for the exact instance name. It only increases the logical ceiling. It never
 shrinks, automatically grows, or changes CPU/memory because the host is busy.
 
-    msl instance remove ubuntu-dev
+    msl instance remove debian-dev
 
 Remove displays the name, UUID, disk size, snapshot count, and warning that
-exports are separate sensitive data. It requires the user to type ubuntu-dev.
+exports are separate sensitive data. It requires the user to type debian-dev.
 MSL stops the VM, revokes shares and forwarding, moves the instance directory to
 Trash when available, then deletes its database rows transactionally. It never
 deletes the shared image cache. If Trash is unavailable it refuses removal unless
@@ -92,8 +94,8 @@ deletes the shared image cache. If Trash is unavailable it refuses removal unles
 
 Before a grant, the guest sees only its own virtual disk.
 
-    msl share add ubuntu-dev /mnt/mac/source
-    msl share add ubuntu-dev /mnt/mac/reference --read-only
+    msl share add debian-dev /mnt/mac/source --guest-path /mnt/mac/source
+    msl share add debian-dev /mnt/mac/reference --guest-path /mnt/mac/reference --read-only
 
 Interactive add opens the native directory picker. The supplied guest path is
 where the selected folder appears inside Linux. MSL shows selected host folder,
@@ -121,7 +123,7 @@ cross-filesystem problems.
 
 Guest services are private until exposed:
 
-    msl port add ubuntu-dev 3000 --host-port 3000
+    msl port add debian-dev 3000 --host-port 3000
 
 This forwards only TCP from http://127.0.0.1:3000 on the Mac to port 3000 in that
 one guest. Forwards bind loopback only. MSL never opens a LAN listener, changes
@@ -130,7 +132,7 @@ interface, normally 0.0.0.0; guest loopback-only services cannot be forwarded.
 
 Omitting --host-port allocates an available persistent high port:
 
-    msl port add ubuntu-dev 3000
+    msl port add debian-dev 3000
     # MSL prints: http://127.0.0.1:51873
 
 The shown URL is authoritative. If an explicit port is occupied, MSL exits 5
@@ -149,8 +151,8 @@ The hostname is stable. No numeric NAT address is part of the interface.
 A committed project manifest looks like this:
 
     schema = 1
-    distribution = "ubuntu"
-    release = "24.04"
+    distribution = "debian"
+    release = "12"
     workspace = "."
 
     [resources]
@@ -193,10 +195,10 @@ each loopback URL.
 
 Bootstrap runs as the designated Linux user in /workspace with MSL_PROJECT=1.
 No host secrets are supplied. It runs once whenever the effective manifest,
-local override, selected image, or workspace bookmark changes; --force-bootstrap
-also runs it. Its output is streamed and retained in instance logs. Failure or
-timeout stops services created by that invocation, preserves VM/workspace for
-debugging, exits 7, and does not retry automatically.
+local override, selected image, or workspace bookmark changes. Its output is
+streamed and retained in instance logs. Failure or timeout stops services
+created by that invocation, preserves VM/workspace for debugging, exits 7, and
+does not retry automatically. `--force-bootstrap` is not a v1 option.
 
 Each service runs as a systemd transient unit. Its working directory is
 /workspace plus working_directory. A service that exits before health passes
@@ -230,9 +232,9 @@ add/remove services. This preserves the committed environment contract.
 
 Snapshots are local restore points and require a stopped VM:
 
-    msl instance stop ubuntu-dev
-    msl snapshot create ubuntu-dev before-upgrade
-    msl snapshot restore ubuntu-dev before-upgrade
+    msl instance stop debian-dev
+    msl snapshot create debian-dev before-upgrade
+    msl snapshot restore debian-dev before-upgrade
 
 Restore says it will replace the current disk, first creates an automatic
 pre-restore snapshot, and requires typing the selected snapshot name. It restores
@@ -241,8 +243,8 @@ expose new ports. Snapshot deletion requires the snapshot name and prefers Trash
 
 An export is the portable backup format:
 
-    msl export ubuntu-dev --output ~/Backups/ubuntu-dev.mslpack
-    msl import ~/Backups/ubuntu-dev.mslpack --name ubuntu-restored
+    msl export debian-dev --output ~/Backups/debian-dev.mslpack
+    msl import ~/Backups/debian-dev.mslpack --name debian-restored
 
 Export requires stop and refuses to overwrite an existing output without
 --overwrite. Treat the archive like a disk backup: it can contain guest secrets.
@@ -265,7 +267,7 @@ notification rate limit. It never retries with broader access.
 ## 8. Doctor and expected failure handling
 
     msl doctor
-    msl doctor --repair grants
+    msl doctor repair debian-dev grants
 
 doctor is read-only. It checks virtualization, architecture, storage/database,
 images, grants, mounts, ports, network, and services. Each result is pass, warn,
@@ -281,7 +283,7 @@ snapshot, export, database, or package state.
 | --- | --- | --- |
 | Unsupported Mac/OS | Exit 4 before mutation. | Use a supported Apple-silicon Mac on macOS 14+. |
 | Invalid image | Exit 6; partial image unusable. | Resolve catalog/network issue; do not bypass validation. |
-| Revoked share | Mount absent and grant marked permission-stale. | doctor --repair grants and reselect folder. |
+| Revoked share | Mount absent and grant marked permission-stale. | `msl doctor repair <instance> grants` and reselect folder. |
 | Occupied host port | Exit 5; no alternate is selected. | Stop owner or choose explicit/allocated port. |
 | Bootstrap/service failure | New services stop; VM and files remain. | Read project logs, fix project, rerun up. |
 | Host reboot/sleep | Guest stops; persistent disk remains. | Run shell or project up again. |
@@ -290,4 +292,3 @@ snapshot, export, database, or package state.
 No workflow in this document grants Full Disk Access, bypasses macOS privacy,
 opens a guest to the LAN, reads host secrets, or upgrades guest packages
 implicitly.
-
