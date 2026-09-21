@@ -1,20 +1,20 @@
 # Debian subsystem implementation tracker
 
-status: implemented
-progress: 100% (documentation contract and workflow)
+status: in_progress
+design_progress: 100%
+implementation_progress: 0%
 
 ## Implementation state
 
-This file is the implementation tracker for the v1 contract. The documentation
-implementation is complete: the v1 contract is explicit and `docs/WORKFLOW.md`
-describes the same Debian-only system. The repository currently contains
-documentation only; no MSL Swift targets or binaries are present yet. The
-`status` flag therefore records completion of the documentation task, not
-completion of product binaries.
+This file is the implementation tracker for the Debian Linux subsystem. The
+design is complete and `docs/WORKFLOW.md` describes the same Debian-only
+system, but the product implementation has not started. The repository
+currently contains documentation only; no MSL Swift targets, Debian image
+pipeline, working VM, guest agent, or binaries are present.
 
 | Area | State | Required completion evidence |
 | --- | --- | --- |
-| Contract and scope | complete | Debian-only v1 decisions are explicit below. |
+| Contract and scope | complete | Debian-only implementation decisions are explicit below. |
 | User workflow | complete | `docs/WORKFLOW.md` matches this contract exactly. |
 | Swift package and targets | not_started | Buildable `msl`, `msld`, `MSLCore`, and guest-agent targets. |
 | Persistent state/recovery | not_started | SQLite migrations, journals, locks, and recovery tests. |
@@ -24,11 +24,12 @@ completion of product binaries.
 | Data transfer/diagnostics | not_started | Snapshot/import/export/remove/doctor tests. |
 | Release verification | not_started | All v1 verification cases pass with no security waivers. |
 
-The documentation task is marked `implemented` after the contract and workflow
-are aligned. The product rows remain `not_started` until Swift targets,
-runtime behavior, and verification evidence exist; changing this flag does not
-pretend those binaries exist. Future product work must update this table with
-evidence and must not change the scope without revising the contract.
+The tracker is marked `in_progress` until the product rows are implemented and
+verified. The design rows being complete does not count as a working Debian
+MSL. The tracker may be marked `implemented` only after the initial Debian VM
+boots successfully, a shell works, persistence works across restart, and the
+release gates in section 14 pass. Future product work must update this table
+with evidence and must not change the scope without revising the contract.
 
 ### Documentation implementation history
 
@@ -36,7 +37,7 @@ evidence and must not change the scope without revising the contract.
    implementation-state document.
 2. `in_progress` — aligned first-use, lifecycle, sharing, forwarding, project,
    snapshot, export, import, and doctor examples to Debian 12 v1.
-3. `implemented` — completed the workflow consistency pass and recorded the
+3. `complete` — completed the workflow consistency pass and recorded the
    remaining product implementation rows as `not_started`.
 
 This document is the complete, binding implementation definition for MSL v1.
