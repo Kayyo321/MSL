@@ -6,6 +6,11 @@ safely continue. The corresponding implementation contract is
 [Implementations/initial-debian-subsystem-implementation-tracker.md](Implementations/initial-debian-subsystem-implementation-tracker.md), which tracks implementation
 state for the complete v1 design. V1 supports Debian 12 arm64 only.
 
+This document records the complete v1 workflow contract. The current implementation
+status is tracked in the implementation tracker; Stage 1 currently contains only
+platform-neutral `MSLCore` validation and IPC types, so none of the workflows
+below are available to users yet.
+
 ## Conventions
 
 <instance> is an installed instance name. <project> is the directory containing

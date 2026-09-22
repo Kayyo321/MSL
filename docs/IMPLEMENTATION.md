@@ -198,8 +198,8 @@ Git, or Git is unavailable and the caller explicitly supplies
 resolved from the manifest directory before a daemon request.
 
     schema = 1
-    distribution = "ubuntu"
-    release = "24.04"
+    distribution = "debian"
+    release = "12"
     workspace = "."
 
     [resources]

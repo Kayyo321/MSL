@@ -43,7 +43,7 @@ release.
 
 | ID | Action | Required assertion |
 | --- | --- | --- |
-| INS-001 | Clean account installs Ubuntu 24.04 as u1. | Verified artifact is cached by digest; one database instance, disk, and agent-ready first boot exist; final state is stopped. |
+| INS-001 | Clean account installs Debian 12 arm64 as u1. | Verified artifact is cached by digest; one database instance, disk, and agent-ready first boot exist; final state is stopped. |
 | INS-002 | Install with wrong image digest. | Exit 6; no usable instance or final cache file; error identifies integrity. |
 | INS-003 | Install with invalid catalog signature. | Exit 6 before image use and with no state mutation. |
 | INS-004 | Request unknown distribution, arbitrary URL, unsupported release, and x86 image. | Each exits 2 or 4; no download/instance occurs. |
@@ -147,8 +147,8 @@ permission, snapshot, or import/export code.
 
 A human tester records screenshots or capture plus sanitized logs for each:
 
-1. From a clean macOS account, install Ubuntu and reach a shell through the
-   promised two-command experience.
+1. From a clean macOS account, install Debian 12 arm64 and reach a shell through
+   the promised two-command experience.
 2. Share a real repository, edit with a Mac editor, compile/test at /workspace,
    and observe changes both directions without SSH or manual VM folders.
 3. Open a guest web service in a Mac browser using the printed loopback URL, then

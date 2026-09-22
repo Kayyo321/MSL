@@ -2,7 +2,7 @@
 
 status: in_progress
 design_progress: 100%
-implementation_progress: 0%
+implementation_progress: started (Stage 1 MSLCore foundation)
 
 ## Implementation state
 
@@ -16,7 +16,7 @@ pipeline, working VM, guest agent, or binaries are present.
 | --- | --- | --- |
 | Contract and scope | complete | Debian-only implementation decisions are explicit below. |
 | User workflow | complete | `docs/WORKFLOW.md` matches this contract exactly. |
-| Swift package and targets | not_started | Buildable `msl`, `msld`, `MSLCore`, and guest-agent targets. |
+| Swift package and targets | in_progress | Buildable, tested `MSLCore` Stage 1 library exists; functional `msl`, `msld`, and guest-agent targets remain required. |
 | Persistent state/recovery | not_started | SQLite migrations, journals, locks, and recovery tests. |
 | Debian image/VM boot | not_started | Signed image verification and authenticated first boot. |
 | Shares/networking | not_started | VirtioFS grants and loopback-only TCP forwarding tests. |
@@ -30,6 +30,20 @@ MSL. The tracker may be marked `implemented` only after the initial Debian VM
 boots successfully, a shell works, persistence works across restart, and the
 release gates in section 14 pass. Future product work must update this table
 with evidence and must not change the scope without revising the contract.
+
+### Stage 1 evidence
+
+`MSLCore` is the only implemented product artifact. It provides strict Debian
+12 arm64 target validation, safe instance/Linux-user identifiers, the v1
+manifest model and pure validation, permitted local-override merging, fixed exit
+codes, and versioned Codable IPC envelopes. The tests are run with `swift test`.
+
+Evidence recorded on 2026-09-22: Swift 6.4 on Debian 13 x86_64 WSL passed five
+MSLCore unit tests. This is platform-neutral validation only: it does not
+qualify a Debian 12 arm64 guest or any macOS-only implementation. No executable
+`msl`, `msld`, or `msl-guest-agent` target exists yet; persistence, image,
+Virtualization.framework, shares, networking, project lifecycle, transfers, and
+doctor remain unimplemented.
 
 ### Documentation implementation history
 
