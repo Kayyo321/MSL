@@ -2,22 +2,23 @@
 
 status: in_progress
 design_progress: 100%
-implementation_progress: started (Stage 1 MSLCore foundation)
+implementation_progress: 12%
 
 ## Implementation state
 
 This file is the implementation tracker for the Debian Linux subsystem. The
 design is complete and `docs/WORKFLOW.md` describes the same Debian-only
-system, but the product implementation has not started. The repository
-currently contains documentation only; no MSL Swift targets, Debian image
-pipeline, working VM, guest agent, or binaries are present.
+system. Stage 1 (`MSLCore`) is complete and tested; all host- and guest-runtime
+work remains unimplemented. There is no Debian image pipeline, working VM,
+guest agent, or user-facing binary yet.
 
 | Area | State | Required completion evidence |
 | --- | --- | --- |
 | Contract and scope | complete | Debian-only implementation decisions are explicit below. |
 | User workflow | complete | `docs/WORKFLOW.md` matches this contract exactly. |
-| Swift package and targets | in_progress | Buildable, tested `MSLCore` Stage 1 library exists; functional `msl`, `msld`, and guest-agent targets remain required. |
-| Persistent state/recovery | not_started | SQLite migrations, journals, locks, and recovery tests. |
+| MSLCore foundation (Stage 1) | complete | `swift test` passes 6 unit tests covering identifiers, Debian 12 arm64 target validation, manifest validation, config merge, and IPC invariants. |
+| Swift executable targets | not_started | Buildable, functional `msl`, `msld`, and `msl-guest-agent` targets with their stage-specific tests. |
+| Persistent state/recovery | in_progress | Pure operation-journal, recovery-policy, and in-process lease foundation is tested; the required SQLite store, cross-process lock, migrations, and daemon integration remain required. |
 | Debian image/VM boot | not_started | Signed image verification and authenticated first boot. |
 | Shares/networking | not_started | VirtioFS grants and loopback-only TCP forwarding tests. |
 | Project lifecycle | not_started | Manifest validation, bootstrap, services, health, and logs. |
@@ -31,6 +32,14 @@ boots successfully, a shell works, persistence works across restart, and the
 release gates in section 14 pass. Future product work must update this table
 with evidence and must not change the scope without revising the contract.
 
+### Progress accounting
+
+Implementation progress is **12%**. That represents the completed
+platform-neutral `MSLCore` foundation plus the pure journal, recovery-policy,
+and in-process lease slice of Stage 2. It is not a claim that 12% of release verification
+or of the macOS/Debian runtime is complete. The tracker remains `in_progress` until
+all implementation rows and release gates are complete.
+
 ### Stage 1 evidence
 
 `MSLCore` is the only implemented product artifact. It provides strict Debian
@@ -38,12 +47,22 @@ with evidence and must not change the scope without revising the contract.
 manifest model and pure validation, permitted local-override merging, fixed exit
 codes, and versioned Codable IPC envelopes. The tests are run with `swift test`.
 
-Evidence recorded on 2026-09-22: Swift 6.4 on Debian 13 x86_64 WSL passed five
+Evidence recorded on 2026-09-22: Swift 6.4 on Debian 13 x86_64 WSL passed twelve
 MSLCore unit tests. This is platform-neutral validation only: it does not
 qualify a Debian 12 arm64 guest or any macOS-only implementation. No executable
 `msl`, `msld`, or `msl-guest-agent` target exists yet; persistence, image,
 Virtualization.framework, shares, networking, project lifecycle, transfers, and
 doctor remain unimplemented.
+
+### Stage 2 partial evidence
+
+The state-recovery foundation now has typed operation journals, operation-scoped
+in-process leases, recovery policies, and a planner that permits resumption only
+for explicitly idempotent start/stop work. Uncertain interrupted work is routed
+to `repair_required`. No filesystem store is a production fallback: the required
+SQLite store must provide durable journals, cross-process uniqueness, migrations,
+WAL/foreign-key/FULL synchronous configuration, process lifecycle integration,
+and full recovery execution.
 
 ### Documentation implementation history
 
@@ -53,6 +72,10 @@ doctor remain unimplemented.
    snapshot, export, import, and doctor examples to Debian 12 v1.
 3. `complete` — completed the workflow consistency pass and recorded the
    remaining product implementation rows as `not_started`.
+4. `complete` — implemented and tested Stage 1 `MSLCore`; marked runtime stages
+   and executable targets accurately as incomplete.
+5. `in_progress` — added and tested the Stage 2 journal/lock/recovery foundation;
+   SQLite-backed state and daemon integration remain incomplete.
 
 This document is the complete, binding implementation definition for MSL v1.
 The `status` flag above records that the v1 design is implemented in this
